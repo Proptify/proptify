@@ -1,4 +1,4 @@
-# Proptify MVP Implementation Guide
+# Proptify MVP - Setup Guide (npm)
 
 ## Overview
 
@@ -14,15 +14,16 @@ This branch contains a **fully functional MVP** with:
 ### Prerequisites
 
 ```bash
-# Install global dependencies
 node --version  # v20+
-npm install -g pnpm
-npm install -g soroban-cli  # For contract deployment
+npm --version   # 10+
 
-# Install Postgres locally (for database)
+# Install Postgres locally
 # macOS: brew install postgresql@15
 # Ubuntu: sudo apt-get install postgresql
 # Windows: https://www.postgresql.org/download/windows/
+
+# Install Soroban CLI
+npm install -g soroban-cli
 ```
 
 ### 1. Clone & Install
@@ -32,8 +33,8 @@ git clone https://github.com/Proptify/proptify.git
 cd proptify
 git checkout feat/mvp-implementation
 
-# Install all dependencies
-pnpm install
+# Install all dependencies (npm only)
+npm run install-all
 ```
 
 ### 2. Set up PostgreSQL Database
@@ -57,17 +58,23 @@ psql -U proptify -d proptify -c "SELECT NOW();"
 cd backend
 cp .env.example .env
 
-# Edit .env and add your Stellar testnet keypair
-# Generate one with: soroban keys generate admin --network testnet
-# Fund it with: soroban keys fund admin --network testnet
+# Generate Stellar testnet keypair
+soroban keys generate admin --network testnet
+soroban keys fund admin --network testnet
+
+# Get keys and add to .env
+soroban keys show admin --network testnet
+# Copy STELLAR_ACCOUNT_ID (public key) and STELLAR_ACCOUNT_SECRET (secret key)
 ```
 
-**Key environment variables:**
+**backend/.env:**
 ```env
-ADMIN_SECRET_KEY=S...  # Your testnet keypair secret
-ADMIN_PUBLIC_KEY=G...  # Your testnet public key
+ADMIN_SECRET_KEY=S...     # From soroban keys show
+ADMIN_PUBLIC_KEY=G...     # From soroban keys show
 DATABASE_URL=postgresql://proptify:proptify@localhost:5432/proptify
 STELLAR_NETWORK=testnet
+NODE_ENV=development
+PORT=3001
 ```
 
 ### 4. Start Backend
@@ -75,8 +82,8 @@ STELLAR_NETWORK=testnet
 ```bash
 # Terminal 1: Backend API
 cd backend
-pnpm install
-pnpm dev
+npm install
+npm run dev
 
 # Should output:
 # ✓ Stellar config loaded for testnet
@@ -84,42 +91,25 @@ pnpm dev
 # 🚀 Server running on http://localhost:3001
 ```
 
-### 5. Configure Frontend
-
-```bash
-cd frontend
-cp .env.example frontend/.env.local
-
-# .env.local should have:
-NEXT_PUBLIC_API_URL=http://localhost:3001
-NEXT_PUBLIC_STELLAR_NETWORK=testnet
-NEXT_PUBLIC_STELLAR_RPC_URL=https://soroban-testnet.stellar.org
-NEXT_PUBLIC_HORIZON_URL=https://horizon-testnet.stellar.org
-```
-
-### 6. Start Frontend
+### 5. Start Frontend
 
 ```bash
 # Terminal 2: Frontend
 cd frontend
-pnpm install
-pnpm dev
+npm install
+npm run dev
 
 # Open http://localhost:3000
 ```
 
-### 7. Test Health Check
+### 6. Test Health Check
 
 ```bash
-# Terminal 3: Verify backend is running
+# Terminal 3: Verify backend
 curl http://localhost:3001/health
 
 # Expected response:
-# {
-#   "status": "ok",
-#   "network": "testnet",
-#   "contracts": { "propertyToken": "NOT_SET", ... }
-# }
+# {"status":"ok","network":"testnet","contracts":{...}}
 ```
 
 ## Deploy Smart Contract
@@ -134,10 +124,6 @@ cargo build --target wasm32-unknown-unknown --release
 ### Deploy to Testnet
 
 ```bash
-# Generate keypair
-soroban keys generate admin --network testnet
-soroban keys fund admin --network testnet
-
 # Deploy
 soroban contract deploy \
   --network testnet \
@@ -154,9 +140,9 @@ CONTRACT_PROPERTY_TOKEN=C...
 soroban contract invoke \
   --network testnet \
   --source admin \
-  --id CBSXVCHVRXN2HCHEV6WYNHAWK6DYCU72LAAVTP5JJLWA2YYKCV6DXV \
+  --id <CONTRACT_ID> \
   -- init \
-  --admin GBRPYHIL2CI3WHZSRXUBK6OUN7ZYJIL7YGXN5ABJLAKQL3NNZKBTFX4 \
+  --admin <ADMIN_ADDRESS> \
   --name "Lekki Phase 1 Apts" \
   --symbol "LEKKI1" \
   --decimals 8 \
@@ -179,7 +165,7 @@ curl -X POST http://localhost:3001/api/properties \
     "total_tokens": 1000000000,
     "price_per_token": 0.50,
     "apy": 8.4,
-    "contract_id": "CBSXVCHVRXN2HCHEV6WYNHAWK6DYCU72LAAVTP5JJLWA2YYKCV6DXV"
+    "contract_id": "<CONTRACT_ID>"
   }'
 ```
 
@@ -200,41 +186,25 @@ proptify/
 │   │   ├── main.ts              # Express entry point
 │   │   ├── config/stellar.ts    # Stellar SDK config
 │   │   ├── routes/              # API endpoints
-│   │   │   ├── health.ts
-│   │   │   ├── properties.ts
-│   │   │   └── auth.ts
-│   │   ├── services/            # Business logic (WIP)
-│   │   ├── db/db.ts             # PostgreSQL pool + migrations
+│   │   ├── db/db.ts             # PostgreSQL
 │   │   └── utils/logger.ts
 │   ├── package.json
-│   ├── tsconfig.json
 │   └── .env.example
-│
 ├── frontend/
 │   ├── src/
-│   │   ├── app/
-│   │   │   ├── layout.tsx       # Root layout
-│   │   │   ├── globals.css
-│   │   │   ├── auth/page.tsx    # Login page
-│   │   │   └── properties/page.tsx
-│   │   ├── components/
-│   │   │   ├── Header.tsx       # Nav + wallet button
-│   │   │   ├── PropertyCard.tsx # Property list item
-│   │   │   └── WalletConnect.tsx
-│   │   ├── hooks/useStellarWallet.ts
-│   │   ├── lib/
-│   │   │   ├── stellar.ts       # Freighter integration
-│   │   │   └── api.ts           # API client
-│   │   └── types/index.ts
+│   │   ├── app/                 # Next.js pages
+│   │   ├── components/          # React components
+│   │   ├── hooks/               # Custom hooks
+│   │   ├── lib/                 # API clients
+│   │   └── types/               # TypeScript types
 │   ├── package.json
 │   └── tailwind.config.ts
-│
 ├── smartcontract/
 │   ├── property-token/
-│   │   ├── src/lib.rs           # Core contract
+│   │   ├── src/lib.rs           # Soroban contract
 │   │   └── Cargo.toml
-│   ├── deploy.sh
 │   └── README.md
+└── package.json                 # Root npm config
 ```
 
 ## What's Implemented ✅
@@ -266,16 +236,6 @@ proptify/
 - [x] Responsive design with Tailwind
 - [x] Header with wallet connect
 
-## What's NOT Yet (Phase 2)
-
-- [ ] Rent distribution contract
-- [ ] Installment sale contract
-- [ ] Token purchase flow (frontend)
-- [ ] Portfolio management page
-- [ ] Real contract invocations
-- [ ] KYC/compliance module
-- [ ] Advanced analytics
-
 ## Common Issues
 
 ### "Database connection failed"
@@ -298,10 +258,13 @@ soroban keys fund admin --network testnet
 - Install Freighter: https://freighter.app
 - Must be on http://localhost:3000 (not https)
 
-### Port already in use
+### "Port already in use"
 ```bash
 # Kill process on port 3001
 lsof -ti:3001 | xargs kill -9
+
+# Kill process on port 3000
+lsof -ti:3000 | xargs kill -9
 ```
 
 ## Next Steps
@@ -310,7 +273,7 @@ lsof -ti:3001 | xargs kill -9
 2. **Add rent distributor contract** → Monthly payments
 3. **Build portfolio dashboard** → User holdings
 4. **Add KYC flow** → Compliance checks
-5. **Deploy to production** → Heroku/Vercel
+5. **Deploy to production** → Vercel/Heroku
 
 ## Support
 

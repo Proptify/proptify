@@ -1,7 +1,8 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 # Setup script for Proptify MVP
 # This script initializes the project for development
+# Uses npm only (no pnpm)
 
 set -e
 
@@ -16,8 +17,8 @@ if ! command -v node &> /dev/null; then
   exit 1
 fi
 
-if ! command -v pnpm &> /dev/null; then
-  echo "❌ pnpm not found. Install with: npm install -g pnpm"
+if ! command -v npm &> /dev/null; then
+  echo "❌ npm not found. Install from https://nodejs.org"
   exit 1
 fi
 
@@ -33,7 +34,9 @@ echo ""
 
 # Install dependencies
 echo "📦 Installing dependencies..."
-pnpm install
+npm install
+npm install --prefix backend
+npm install --prefix frontend
 
 echo ""
 echo "✅ Setup complete!"
@@ -54,10 +57,10 @@ echo "   cp .env.example .env"
 echo "   # Add ADMIN_SECRET_KEY and ADMIN_PUBLIC_KEY from step 2"
 echo ""
 echo "4️⃣  Start backend:"
-echo "   cd backend && pnpm dev"
+echo "   cd backend && npm run dev"
 echo ""
 echo "5️⃣  Start frontend (in new terminal):"
-echo "   cd frontend && pnpm dev"
+echo "   cd frontend && npm run dev"
 echo ""
 echo "6️⃣  Open app at http://localhost:3000"
 echo ""

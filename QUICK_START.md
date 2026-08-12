@@ -1,12 +1,13 @@
-# Quick Start for MVP
+# Quick Start for MVP (npm)
 
-Get Proptify running in **15 minutes**.
+Get Proptify running in **15 minutes** with npm only.
 
 ## 1. Prerequisites
 
 ```bash
 # Check versions
 node --version   # v20+
+npm --version    # 10+
 postgres --version  # 12+
 soroban --version  # 21+
 ```
@@ -17,7 +18,6 @@ soroban --version  # 21+
 git clone https://github.com/Proptify/proptify.git
 cd proptify
 git checkout feat/mvp-implementation
-pnpm install
 ```
 
 ## 3. Database
@@ -28,41 +28,56 @@ psql postgres -c "CREATE USER proptify WITH PASSWORD 'proptify';"
 psql postgres -c "CREATE DATABASE proptify OWNER proptify;"
 ```
 
-## 4. Backend (.env)
+## 4. Install Dependencies
 
 ```bash
-cd backend
-cp .env.example .env
+# Install root, backend, and frontend packages
+npm run install-all
+```
 
-# Generate and fund Stellar testnet keypair
+## 5. Backend Configuration
+
+```bash
+# Generate Stellar testnet keypair
 soroban keys generate admin --network testnet
 soroban keys fund admin --network testnet
 
-# Get the keys and add to .env
+# Get the keys
 soroban keys show admin --network testnet
+
+# Configure backend
+cd backend
+cp .env.example .env
+# Edit .env and add:
+#   ADMIN_SECRET_KEY=S...
+#   ADMIN_PUBLIC_KEY=G...
 ```
 
-## 5. Start Services
+## 6. Start Services
 
 ```bash
-# Terminal 1: Backend
-cd backend && pnpm dev
+# Terminal 1: Start backend
+cd backend
+npm install
+npm run dev
 
-# Terminal 2: Frontend  
-cd frontend && pnpm dev
+# Terminal 2: Start frontend (in new terminal)
+cd frontend
+npm install
+npm run dev
 
-# Terminal 3: Test
+# Terminal 3: Test (in new terminal)
 curl http://localhost:3001/health
 ```
 
-## 6. Open App
+## 7. Open App
 
 Go to **http://localhost:3000**
 - Click "Connect Wallet"
 - Sign with Freighter
 - See properties
 
-## 7. Deploy Contract (Optional)
+## 8. Deploy Contract (Optional)
 
 ```bash
 cd smartcontract/property-token
