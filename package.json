@@ -1,0 +1,27 @@
+{
+  "name": "proptify",
+  "version": "0.1.0",
+  "description": "Open-source real estate infrastructure for emerging markets",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "frontend",
+    "sdk"
+  ],
+  "scripts": {
+    "dev": "pnpm --parallel -r run dev",
+    "build": "pnpm -r run build",
+    "test": "pnpm -r run test",
+    "contracts:build": "cd smartcontract/property-token && cargo build --target wasm32-unknown-unknown --release",
+    "contracts:test": "cd smartcontract/property-token && cargo test"
+  },
+  "keywords": [
+    "stellar",
+    "soroban",
+    "real-estate",
+    "tokenization",
+    "fractional-ownership"
+  ],
+  "author": "Proptify Contributors",
+  "license": "MIT"
+}
