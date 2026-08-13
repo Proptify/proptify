@@ -1,0 +1,1 @@
+workspace = { members = ["smartcontract/property-token"] }
