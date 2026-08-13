@@ -3,7 +3,6 @@
   "installCommand": "npm install && npm install --prefix backend && npm install --prefix frontend",
   "outputDirectory": "frontend/.next",
   "framework": "nextjs",
-  "nodeVersion": "20.x",
   "env": [
     "NEXT_PUBLIC_API_URL",
     "NEXT_PUBLIC_STELLAR_NETWORK",
